@@ -1,0 +1,47 @@
+@model IEnumerable<WebApp.Models.AppUser>
+
+@{
+    ViewData["Title"] = "User Activities";
+}
+
+<div class="container">
+    <h2 class="mb-4">User Activities</h2>
+
+    <div class="row">
+        @foreach (var user in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@user.Username</h5>
+                        <p class="card-text text-muted">@user.Email</p>
+                        
+                        @if (user.Projects.Any())
+                        {
+                            <h6 class="mt-3">Participating Projects:</h6>
+                            <div class="list-group">
+                                @foreach (var project in user.Projects)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">@project.Title</h6>
+                                            <small class="text-muted">@project.ProjectType?.Name</small>
+                                        </div>
+                                        <p class="mb-1">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> Created: @project.CreatedAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mt-3">This user hasn't joined any projects yet.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div> 

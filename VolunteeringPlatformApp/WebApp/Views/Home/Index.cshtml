@@ -1,8 +1,44 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to Volunteering Platform</h1>
+    <p class="lead">Make a difference in your community by joining our volunteering projects.</p>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">Find Projects</h5>
+                <p class="card-text">Browse through various volunteering opportunities in your area.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">Join Projects</h5>
+                <p class="card-text">Sign up for projects that match your skills and interests.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">Make Impact</h5>
+                <p class="card-text">Contribute to meaningful causes and make a positive impact.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-5">
+    <h2>Ready to Get Started?</h2>
+    <p class="lead">Join our community of volunteers today!</p>
+    <div class="mt-4">
+        <a asp-controller="User" asp-action="Register" class="btn btn-primary btn-lg">Register Now</a>
+        <a asp-controller="User" asp-action="Login" class="btn btn-outline-primary btn-lg ms-3">Login</a>
+    </div>
 </div>

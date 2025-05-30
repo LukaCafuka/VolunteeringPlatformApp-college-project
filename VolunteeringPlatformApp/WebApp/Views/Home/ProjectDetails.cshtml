@@ -1,0 +1,64 @@
+@model WebApp.Models.Project
+
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="mb-4">@Model.Title</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">@Model.Description</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Project Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Project Type:</strong> @Model.ProjectType?.Name</p>
+                            <p><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Current Volunteers:</strong> @Model.Appusers.Count</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Skills.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Required Skills</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var skill in Model.Skills)
+                            {
+                                <span class="badge bg-primary">@skill.Name</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Join This Project</h5>
+                    <div class="d-grid gap-2">
+                        <form asp-action="JoinProject" method="post">
+                            <input type="hidden" name="projectId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-primary w-100">Join Project</button>
+                        </form>
+                        <a asp-action="AvailableProjects" class="btn btn-outline-secondary w-100">Back to Projects</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

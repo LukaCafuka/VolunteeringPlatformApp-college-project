@@ -6,7 +6,6 @@ using WebApp.ViewModels;
 using WebApp.Models;
 using WebApp.Security;
 
-
 namespace WebApp.Controllers;
 
 public class UserController : Controller
@@ -22,8 +21,6 @@ public class UserController : Controller
     {
         return View();
     }
-
-    
 
     public IActionResult Login(string returnUrl)
     {
@@ -50,9 +47,9 @@ public class UserController : Controller
             return View();
         }
 
-        // Check is password hash matches
-        var b64hash = PasswordHashProvider.GetHash(loginVm.Password, existingUser.PswdSalt);
-        if (b64hash != existingUser.PswdHash)
+        // Check if password hash matches
+        var hash = PasswordHashProvider.GetHash(loginVm.Password, existingUser.PswdSalt);
+        if (hash != existingUser.PswdHash)
         {
             ModelState.AddModelError("", "Invalid username or password");
             return View();
@@ -60,7 +57,8 @@ public class UserController : Controller
 
         var claims = new List<Claim>() {
             new Claim(ClaimTypes.Name, loginVm.Username),
-            new Claim(ClaimTypes.Role, existingUser.IsAdmin ? "Admin" : "User")
+            new Claim(ClaimTypes.Role, existingUser.IsAdmin ? "Admin" : "User"),
+            new Claim("UserId", existingUser.Id.ToString())
         };
 
         var claimsIdentity = new ClaimsIdentity(
@@ -80,7 +78,7 @@ public class UserController : Controller
         if (loginVm.ReturnUrl != null)
             return LocalRedirect(loginVm.ReturnUrl);
         else if (existingUser.IsAdmin)
-            return RedirectToAction("Index", "AdminHome");
+            return RedirectToAction("Index", "Projects");
         else
             return RedirectToAction("Index", "Home");
     }
@@ -92,7 +90,7 @@ public class UserController : Controller
                 CookieAuthenticationDefaults.AuthenticationScheme)
         ).GetAwaiter().GetResult();
 
-        return View();
+        return RedirectToAction("Index", "Home");
     }
 
     public IActionResult Register()
@@ -108,19 +106,22 @@ public class UserController : Controller
             // Check if there is such a username in the database already
             var trimmedUsername = userVm.Username.Trim();
             if (_context.AppUsers.Any(x => x.Username.Equals(trimmedUsername)))
-                return BadRequest($"Username {trimmedUsername} already exists");
+            {
+                ModelState.AddModelError("Username", "Username is already taken");
+                return View(userVm);
+            }
 
-            // Hash the password
-            var b64salt = PasswordHashProvider.GetSalt();
-            var b64hash = PasswordHashProvider.GetHash(userVm.Password, b64salt);
+            // Generate salt and hash password
+            var salt = PasswordHashProvider.GetSalt();
+            var hash = PasswordHashProvider.GetHash(userVm.Password, salt);
 
             // Create user from DTO and hashed password
             var user = new AppUser
             {
                 Id = userVm.Id,
                 Username = userVm.Username,
-                PswdHash = b64hash,
-                PswdSalt = b64salt,
+                PswdHash = hash,
+                PswdSalt = salt,
                 FirstName = userVm.FirstName,
                 LastName = userVm.LastName,
                 Email = userVm.Email,
@@ -134,14 +135,13 @@ public class UserController : Controller
             // Update DTO Id to return it to the client
             userVm.Id = user.Id;
 
-            return RedirectToAction("Index", "Home");
-
+            return RedirectToAction("Login");
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            ModelState.AddModelError("", "An error occurred while registering. Please try again.");
+            return View(userVm);
         }
     }
-
 }
 

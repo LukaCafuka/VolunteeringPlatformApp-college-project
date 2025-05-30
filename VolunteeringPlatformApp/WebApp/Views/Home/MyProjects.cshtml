@@ -1,0 +1,62 @@
+@model IEnumerable<WebApp.Models.Project>
+
+@{
+    ViewData["Title"] = "My Projects";
+}
+
+<div class="container">
+    <h2 class="mb-4">My Projects</h2>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var project in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@project.Title</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@project.ProjectType?.Name</h6>
+                            <p class="card-text">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-people"></i> @project.Appusers.Count volunteers
+                                </small>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> Created: @project.CreatedAt.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+
+                            @if (project.Skills.Any())
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted">Required Skills:</small>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @foreach (var skill in project.Skills)
+                                        {
+                                            <span class="badge bg-primary">@skill.Name</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <a asp-action="ProjectDetails" asp-route-id="@project.Id" class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4 class="alert-heading">No Projects Yet!</h4>
+            <p>You haven't joined any projects yet. Browse through available projects and find one that matches your interests and skills.</p>
+            <hr>
+            <a asp-action="AvailableProjects" class="btn btn-primary">Browse Projects</a>
+        </div>
+    }
+</div> 
