@@ -27,7 +27,7 @@
                                             <h6 class="mb-1">@project.Title</h6>
                                             <small class="text-muted">@project.ProjectType?.Name</small>
                                         </div>
-                                        <p class="mb-1">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
+                                        <p class="mb-1" style="font-size: 0.95em; color: #6c757d;">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
                                         <small class="text-muted">
                                             <i class="bi bi-calendar"></i> Created: @project.CreatedAt.ToString("MMM dd, yyyy")
                                         </small>

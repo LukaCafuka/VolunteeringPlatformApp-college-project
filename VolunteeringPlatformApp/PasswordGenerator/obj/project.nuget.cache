@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "zalvP3ORYz8=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\bubif\\Desktop\\rwa-projekt-volunteer\\VolunteeringPlatformApp\\PasswordGenerator\\PasswordGenerator.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\bubif\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.0\\microsoft.aspnetcore.cryptography.internal.8.0.0.nupkg.sha512",
+    "C:\\Users\\bubif\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.0\\microsoft.aspnetcore.cryptography.keyderivation.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

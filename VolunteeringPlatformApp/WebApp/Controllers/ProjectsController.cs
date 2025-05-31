@@ -22,6 +22,7 @@ namespace WebApp.Controllers
             var projects = _context.Projects
                 .Include(p => p.ProjectType)
                 .Include(p => p.Skills)
+                .Include(p => p.Appusers)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchString))
@@ -209,6 +210,8 @@ namespace WebApp.Controllers
 
             var project = await _context.Projects
                 .Include(p => p.ProjectType)
+                .Include(p => p.Skills)
+                .Include(p => p.Appusers)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (project == null)
@@ -225,9 +228,23 @@ namespace WebApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var project = await _context.Projects.FindAsync(id);
+            var project = await _context.Projects
+                .Include(p => p.Skills)
+                .Include(p => p.Appusers)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (project != null)
             {
+                // Remove project-skill relationships
+                project.Skills.Clear();
+                
+                // Remove project-user relationships
+                project.Appusers.Clear();
+                
+                // Save changes to remove relationships
+                await _context.SaveChangesAsync();
+                
+                // Now remove the project
                 _context.Projects.Remove(project);
                 await _context.SaveChangesAsync();
             }

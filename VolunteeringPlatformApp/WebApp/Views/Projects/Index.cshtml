@@ -1,0 +1,109 @@
+@model IEnumerable<WebApp.Models.Project>
+
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Projects</h2>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New
+            </a>
+        }
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" name="searchString" value="@ViewBag.CurrentSearchString" class="form-control" placeholder="Search projects...">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="projectTypeId" asp-items="@(new SelectList(ViewBag.ProjectTypes, "Id", "Name", ViewBag.CurrentProjectTypeId))" class="form-select">
+                        <option value="">All Project Types</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No projects found.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var project in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@project.Title</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@project.ProjectType?.Name</h6>
+                            <p class="card-text">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-people"></i> @project.Appusers.Count volunteers
+                                </small>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> Created: @project.CreatedAt.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a asp-action="Details" asp-route-id="@project.Id" class="btn btn-info btn-sm">
+                                    <i class="bi bi-info-circle"></i> Details
+                                </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@project.Id" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@project.Id" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-page="@i"
+                               asp-route-searchString="@ViewBag.CurrentSearchString"
+                               asp-route-projectTypeId="@ViewBag.CurrentProjectTypeId">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div> 

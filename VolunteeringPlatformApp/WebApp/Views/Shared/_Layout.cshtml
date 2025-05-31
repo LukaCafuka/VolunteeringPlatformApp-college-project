@@ -17,54 +17,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Projects" asp-action="Index">Projects</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="ProjectTypes" asp-action="Index">Project Types</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Skills" asp-action="Index">Skills</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Home" asp-action="UserActivities">User Activities</a>
-                                </li>
-                            }
-                            else
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Home" asp-action="AvailableProjects">Available Projects</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Home" asp-action="MyProjects">My Projects</a>
-                                </li>
-                            }
-                        }
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item">
-                                <form asp-controller="User" asp-action="Logout" method="post" id="logoutForm">
-                                    <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="User" asp-action="Login">Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="User" asp-action="Register">Register</a>
-                            </li>
-                        }
-                    </ul>
+                    @await Component.InvokeAsync("NavigationMenu")
                 </div>
             </div>
         </nav>

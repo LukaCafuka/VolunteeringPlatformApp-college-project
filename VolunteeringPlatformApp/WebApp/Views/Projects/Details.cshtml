@@ -1,0 +1,92 @@
+@model WebApp.Models.Project
+
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Project Details</h2>
+        <div>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+            }
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">@Model.Title</h3>
+                    <h6 class="card-subtitle mb-3 text-muted">@Model.ProjectType?.Name</h6>
+                    
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p class="card-text">@Model.Description</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Required Skills</h5>
+                            @if (Model.Skills.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var skill in Model.Skills)
+                                    {
+                                        <li class="list-group-item">
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                            @skill.Name
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No specific skills required</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Project Information</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <i class="bi bi-people"></i>
+                                    <strong>Volunteers:</strong> @Model.Appusers.Count
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-calendar"></i>
+                                    <strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    @if (Model.Appusers.Any())
+                    {
+                        <div class="mb-4">
+                            <h5>Current Volunteers</h5>
+                            <div class="list-group">
+                                @foreach (var user in Model.Appusers)
+                                {
+                                    <div class="list-group-item">
+                                        <i class="bi bi-person"></i>
+                                        @user.Username
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
