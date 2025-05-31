@@ -65,6 +65,7 @@ namespace WebApp.Controllers
             var project = await _context.Projects
                 .Include(p => p.ProjectType)
                 .Include(p => p.Skills)
+                .Include(p => p.Appusers)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (project == null)
@@ -90,6 +91,13 @@ namespace WebApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Project project, int[] selectedSkills)
         {
+            // Unique title check
+            var trimmedTitle = project.Title.Trim();
+            if (_context.Projects.Any(p => p.Title.ToLower() == trimmedTitle.ToLower()))
+            {
+                ModelState.AddModelError("Title", "A project with this title already exists.");
+            }
+
             if (ModelState.IsValid)
             {
                 if (selectedSkills != null)
@@ -146,6 +154,13 @@ namespace WebApp.Controllers
             if (id != project.Id)
             {
                 return NotFound();
+            }
+
+            // Unique title check (exclude self)
+            var trimmedTitle = project.Title.Trim();
+            if (_context.Projects.Any(p => p.Id != id && p.Title.ToLower() == trimmedTitle.ToLower()))
+            {
+                ModelState.AddModelError("Title", "A project with this title already exists.");
             }
 
             if (ModelState.IsValid)

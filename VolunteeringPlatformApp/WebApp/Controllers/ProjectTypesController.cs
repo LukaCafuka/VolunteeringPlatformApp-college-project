@@ -67,6 +67,13 @@ namespace WebApp.Controllers
                 return RedirectToAction("Index", "Projects");
             }
 
+            // Unique name check
+            var trimmedName = projectType.Name.Trim();
+            if (_context.ProjectTypes.Any(pt => pt.Name.ToLower() == trimmedName.ToLower()))
+            {
+                ModelState.AddModelError("Name", "A project type with this name already exists.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(projectType);
@@ -110,6 +117,13 @@ namespace WebApp.Controllers
             if (id != projectType.Id)
             {
                 return NotFound();
+            }
+
+            // Unique name check (exclude self)
+            var trimmedName = projectType.Name.Trim();
+            if (_context.ProjectTypes.Any(pt => pt.Id != id && pt.Name.ToLower() == trimmedName.ToLower()))
+            {
+                ModelState.AddModelError("Name", "A project type with this name already exists.");
             }
 
             if (ModelState.IsValid)

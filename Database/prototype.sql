@@ -20,9 +20,9 @@ CREATE TABLE AppUser (
   Username NVARCHAR(50) NOT NULL,
   PswdHash NVARCHAR(256) NOT NULL,
   PswdSalt NVARCHAR(256) NOT NULL,
-  FirstName NVARCHAR(256) NOT NULL,
-  LastName NVARCHAR(256) NOT NULL,
-  Email NVARCHAR(256) NOT NULL,
+  FirstName NVARCHAR(256) NULL,
+  LastName NVARCHAR(256) NULL,
+  Email NVARCHAR(256) NULL,
   IsAdmin BIT NOT NULL,
   CONSTRAINT PK_User PRIMARY KEY CLUSTERED (
     Id ASC
@@ -82,6 +82,10 @@ SELECT * FROM ProjectType
 INSERT INTO Project(Title, Description, ProjectTypeId) VALUES ('Help make an AI chatbot','Help us make an AI chatbot',1)
 INSERT INTO Project(Title, Description, ProjectTypeId) VALUES ('Provide IT help to customers','Provide IT help to customers',1)
 SELECT * FROM Project
+
+INSERT INTO AppUser(Username, PswdSalt, PswdHash, IsAdmin, FirstName, LastName, Email) VALUES ('admin', 'uR03I43bwj+xI90PflCoJA==', 'cUiehoPjgd71AVx4B5hxL8+UT8IM9dGL2P1G4CMnoTA=', 1, 'Luka', 'Filipić', 'luka@z.com.hr')
+SELECT * FROM AppUser
+
 
 INSERT INTO ProjectSkill(ProjectId, SkillId) VALUES (1, 1)
 

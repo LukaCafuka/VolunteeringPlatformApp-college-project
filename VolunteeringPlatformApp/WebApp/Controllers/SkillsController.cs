@@ -67,6 +67,13 @@ namespace WebApp.Controllers
                 return RedirectToAction("Index", "Projects");
             }
 
+            // Unique name check
+            var trimmedName = skill.Name.Trim();
+            if (_context.Skills.Any(s => s.Name.ToLower() == trimmedName.ToLower()))
+            {
+                ModelState.AddModelError("Name", "A skill with this name already exists.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(skill);
@@ -110,6 +117,13 @@ namespace WebApp.Controllers
             if (id != skill.Id)
             {
                 return NotFound();
+            }
+
+            // Unique name check (exclude self)
+            var trimmedName = skill.Name.Trim();
+            if (_context.Skills.Any(s => s.Id != id && s.Name.ToLower() == trimmedName.ToLower()))
+            {
+                ModelState.AddModelError("Name", "A skill with this name already exists.");
             }
 
             if (ModelState.IsValid)
