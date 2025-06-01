@@ -33,6 +33,9 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="User" asp-action="Profile">Profile</a>
+        </li>
+        <li class="nav-item">
             <form asp-controller="User" asp-action="Logout" method="post" id="logoutForm">
                 <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
             </form>

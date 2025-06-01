@@ -5,6 +5,8 @@ using System.Security.Claims;
 using WebApp.ViewModels;
 using WebApp.Models;
 using WebApp.Security;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApp.Controllers;
 
@@ -142,6 +144,62 @@ public class UserController : Controller
             ModelState.AddModelError("", "An error occurred while registering. Please try again.");
             return View(userVm);
         }
+    }
+
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Username == User.Identity.Name);
+        if (user == null)
+            return NotFound();
+        var vm = new WebApp.ViewModels.UserProfileVM
+        {
+            Id = user.Id,
+            Username = user.Username,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            IsAdmin = user.IsAdmin
+        };
+        return View(vm);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] WebApp.ViewModels.UserProfileVM vm)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+            return Json(new { success = false, errors });
+        }
+        var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == vm.Id);
+        if (user == null)
+            return Json(new { success = false, message = "User not found." });
+
+        // Username uniqueness check (exclude self)
+        var trimmedUsername = vm.Username.Trim();
+        if (_context.AppUsers.Any(u => u.Id != vm.Id && u.Username.ToLower() == trimmedUsername.ToLower()))
+        {
+            ModelState.AddModelError("Username", "A user with this username already exists.");
+            var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+            return Json(new { success = false, errors });
+        }
+
+        user.Username = vm.Username;
+        user.FirstName = vm.FirstName;
+        user.LastName = vm.LastName;
+        user.Email = vm.Email;
+        await _context.SaveChangesAsync();
+        return Json(new { success = true, message = "Profile updated successfully." });
     }
 }
 

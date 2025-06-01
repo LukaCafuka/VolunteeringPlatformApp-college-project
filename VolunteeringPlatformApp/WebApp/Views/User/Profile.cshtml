@@ -1,0 +1,91 @@
+@model WebApp.ViewModels.UserProfileVM
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container mt-4">
+    <h2>My Profile</h2>
+    <div id="profile-success" class="alert alert-success d-none"></div>
+    <div id="profile-error" class="alert alert-danger d-none"></div>
+    <form id="profileForm">
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="FirstName" class="form-label"></label>
+            <input asp-for="FirstName" class="form-control" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="LastName" class="form-label"></label>
+            <input asp-for="LastName" class="form-control" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Role</label><br />
+            @if (Model.IsAdmin)
+            {
+                <span class="badge bg-danger">Administrator</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">User</span>
+            }
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#profileForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var data = {
+                    Id: form.find('[name="Id"]').val(),
+                    Username: form.find('[name="Username"]').val(),
+                    FirstName: form.find('[name="FirstName"]').val(),
+                    LastName: form.find('[name="LastName"]').val(),
+                    Email: form.find('[name="Email"]').val()
+                };
+                $("#profile-success").addClass('d-none').text("");
+                $("#profile-error").addClass('d-none').text("");
+                form.find('.text-danger').text("");
+                $.ajax({
+                    url: '@Url.Action("UpdateProfile", "User")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (result) {
+                        console.log(result);
+                        if (result.success) {
+                            $("#profile-success").removeClass('d-none').text(result.message);
+                        } else if (result.errors) {
+                            for (var key in result.errors) {
+                                var errorMsg = result.errors[key].join(' ');
+                                form.find('[name="' + key + '"]').next('.text-danger').text(errorMsg);
+                            }
+                        } else {
+                            $("#profile-error").removeClass('d-none').text(result.message || 'An error occurred.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr, status, error);
+                        $("#profile-error").removeClass('d-none').text('An error occurred while updating the profile.');
+                    }
+                });
+            });
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 
