@@ -7,77 +7,74 @@
 <div class="container">
     <h2 class="mb-4">Available Projects</h2>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-6">
-                    <input type="text" name="searchString" value="@ViewBag.CurrentSearchString" class="form-control" placeholder="Search projects...">
-                </div>
-                <div class="col-md-4">
-                    <select name="projectTypeId" class="form-select">
-                        <option value="">All Project Types</option>
-                        @foreach (var type in ViewBag.ProjectTypes)
-                        {
-                            <option value="@type.Id" selected="@(ViewBag.CurrentProjectTypeId == type.Id)">@type.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Search</button>
-                </div>
-            </form>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" id="searchString" class="form-control" placeholder="Search projects..." 
+                       value="@ViewBag.CurrentSearchString">
+                <button class="btn btn-primary" onclick="searchProjects()">Search</button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <select id="projectTypeId" class="form-select" onchange="searchProjects()">
+                <option value="">All Project Types</option>
+                @foreach (var type in ViewBag.ProjectTypes)
+                {
+                    if (type.Id == ViewBag.CurrentProjectTypeId)
+                    {
+                        <option value="@type.Id" selected>@type.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@type.Id">@type.Name</option>
+                    }
+                }
+            </select>
         </div>
     </div>
 
-    <div class="row">
-        @foreach (var project in Model)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@project.Title</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">@project.ProjectType?.Name</h6>
-                        <p class="card-text">@(project.Description?.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)</p>
-                        <div class="mb-2">
-                            <small class="text-muted">
-                                <i class="bi bi-people"></i> @project.Appusers.Count volunteers
-                            </small>
-                        </div>
-                        <div class="mb-2">
-                            <small class="text-muted">
-                                <i class="bi bi-calendar"></i> Created: @project.CreatedAt.ToString("MMM dd, yyyy")
-                            </small>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a asp-action="ProjectDetails" asp-route-id="@project.Id" class="btn btn-outline-primary">View Details</a>
-                            <form asp-action="JoinProject" method="post" class="d-inline">
-                                <input type="hidden" name="projectId" value="@project.Id" />
-                                <button type="submit" class="btn btn-primary">Join Project</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+    <div id="projectsContainer">
+        @await Html.PartialAsync("_ProjectsList", Model)
     </div>
+</div>
 
-    @if (ViewBag.TotalPages > 1)
-    {
-        <nav aria-label="Page navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="AvailableProjects" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-searchString="@ViewBag.CurrentSearchString" asp-route-projectTypeId="@ViewBag.CurrentProjectTypeId">Previous</a>
-                </li>
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link" asp-action="AvailableProjects" asp-route-page="@i" asp-route-searchString="@ViewBag.CurrentSearchString" asp-route-projectTypeId="@ViewBag.CurrentProjectTypeId">@i</a>
-                    </li>
-                }
-                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="AvailableProjects" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-searchString="@ViewBag.CurrentSearchString" asp-route-projectTypeId="@ViewBag.CurrentProjectTypeId">Next</a>
-                </li>
-            </ul>
-        </nav>
-    }
-</div> 
+@section Scripts {
+    <script>
+        function loadPage(page) {
+            const searchString = document.getElementById('searchString').value;
+            const projectTypeId = document.getElementById('projectTypeId').value;
+            
+            $.get('@Url.Action("AvailableProjects")', {
+                searchString: searchString,
+                projectTypeId: projectTypeId,
+                page: page,
+                partial: true
+            }, function(data) {
+                $('#projectsContainer').html(data);
+                // Update URL without page reload
+                const url = new URL(window.location);
+                url.searchParams.set('page', page);
+                if (searchString) url.searchParams.set('searchString', searchString);
+                if (projectTypeId) url.searchParams.set('projectTypeId', projectTypeId);
+                window.history.pushState({}, '', url);
+            });
+        }
+
+        function searchProjects() {
+            loadPage(1);
+        }
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function() {
+            const url = new URL(window.location);
+            const page = url.searchParams.get('page') || 1;
+            const searchString = url.searchParams.get('searchString') || '';
+            const projectTypeId = url.searchParams.get('projectTypeId') || '';
+            
+            document.getElementById('searchString').value = searchString;
+            document.getElementById('projectTypeId').value = projectTypeId;
+            
+            loadPage(page);
+        };
+    </script>
+} 

@@ -91,15 +91,16 @@ namespace WebApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Project project, int[] selectedSkills)
         {
-            // Unique title check
-            var trimmedTitle = project.Title.Trim();
-            if (_context.Projects.Any(p => p.Title.ToLower() == trimmedTitle.ToLower()))
+            // Only check if title is required
+            var trimmedTitle = project.Title?.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedTitle))
             {
-                ModelState.AddModelError("Title", "A project with this title already exists.");
+                ModelState.AddModelError("Title", "Title is required.");
             }
 
             if (ModelState.IsValid)
             {
+                project.Title = trimmedTitle; // Ensure we save the trimmed title
                 if (selectedSkills != null)
                 {
                     foreach (var skillId in selectedSkills)
@@ -156,11 +157,11 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            // Unique title check (exclude self)
-            var trimmedTitle = project.Title.Trim();
-            if (_context.Projects.Any(p => p.Id != id && p.Title.ToLower() == trimmedTitle.ToLower()))
+            // Only check if title is required
+            var trimmedTitle = project.Title?.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedTitle))
             {
-                ModelState.AddModelError("Title", "A project with this title already exists.");
+                ModelState.AddModelError("Title", "Title is required.");
             }
 
             if (ModelState.IsValid)
@@ -176,7 +177,7 @@ namespace WebApp.Controllers
                         return NotFound();
                     }
 
-                    existingProject.Title = project.Title;
+                    existingProject.Title = trimmedTitle; // Use the trimmed title
                     existingProject.Description = project.Description;
                     existingProject.ProjectTypeId = project.ProjectTypeId;
 

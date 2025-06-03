@@ -34,7 +34,21 @@ public class HomeController : Controller
     }
 
     [Authorize]
-    public async Task<IActionResult> AvailableProjects(string searchString, int? projectTypeId, int page = 1)
+    public async Task<IActionResult> AvailableProjects(string searchString, int? projectTypeId, int page = 1, bool partial = false)
+    {
+        var (projectsList, projectTypes, totalPages) = await GetProjectsData(searchString, projectTypeId, page);
+        
+        ViewBag.ProjectTypes = projectTypes;
+        ViewBag.CurrentSearchString = searchString;
+        ViewBag.CurrentProjectTypeId = projectTypeId;
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        
+        return partial ? PartialView("_ProjectsList", projectsList) : View(projectsList);
+    }
+
+    private async Task<(List<Project> Projects, List<ProjectType> ProjectTypes, int TotalPages)> GetProjectsData(
+        string searchString, int? projectTypeId, int page)
     {
         var projects = _context.Projects
             .Include(p => p.ProjectType)
@@ -62,13 +76,9 @@ public class HomeController : Controller
             .Take(pageSize)
             .ToListAsync();
 
-        ViewBag.ProjectTypes = await _context.ProjectTypes.ToListAsync();
-        ViewBag.CurrentSearchString = searchString;
-        ViewBag.CurrentProjectTypeId = projectTypeId;
-        ViewBag.CurrentPage = page;
-        ViewBag.TotalPages = totalPages;
+        var projectTypes = await _context.ProjectTypes.ToListAsync();
 
-        return View(projectsList);
+        return (projectsList, projectTypes, totalPages);
     }
 
     [Authorize]
