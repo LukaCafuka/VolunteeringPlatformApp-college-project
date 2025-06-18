@@ -50,10 +50,14 @@ public class HomeController : Controller
     private async Task<(List<Project> Projects, List<ProjectType> ProjectTypes, int TotalPages)> GetProjectsData(
         string searchString, int? projectTypeId, int page)
     {
+        // Get current user ID
+        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        
         var projects = _context.Projects
             .Include(p => p.ProjectType)
             .Include(p => p.Skills)
             .Include(p => p.Appusers)
+            .Where(p => !p.Appusers.Any(u => u.Id == userId)) // Exclude projects user has already joined
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(searchString))

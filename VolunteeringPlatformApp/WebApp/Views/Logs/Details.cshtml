@@ -1,0 +1,84 @@
+@model WebApp.Models.LogEntry
+
+@{
+    ViewData["Title"] = "Log Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Log Entry Details</h1>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Logs</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Log Entry #@Model.Id</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <strong>Timestamp:</strong>
+            </div>
+            <div class="col-md-10">
+                @Model.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <strong>Level:</strong>
+            </div>
+            <div class="col-md-10">
+                <span class="badge @GetLevelBadgeClass(Model.Level)">@Model.Level</span>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <strong>Message:</strong>
+            </div>
+            <div class="col-md-10">
+                <div class="border rounded p-3 bg-light">
+                    @Model.Message
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Exception))
+        {
+            <div class="row mb-3">
+                <div class="col-md-2">
+                    <strong>Exception:</strong>
+                </div>
+                <div class="col-md-10">
+                    <div class="border rounded p-3 bg-light">
+                        <pre class="mb-0 text-danger">@Model.Exception</pre>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetLevelBadgeClass(string level)
+    {
+        return level?.ToLower() switch
+        {
+            "error" => "bg-danger",
+            "critical" => "bg-dark",
+            "warning" => "bg-warning text-dark",
+            "information" => "bg-info",
+            "debug" => "bg-secondary",
+            _ => "bg-light text-dark"
+        };
+    }
+}
+
+<style>
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+    }
+</style> 

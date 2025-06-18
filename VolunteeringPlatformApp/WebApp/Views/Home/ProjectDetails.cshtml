@@ -49,14 +49,33 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Join This Project</h5>
-                    <div class="d-grid gap-2">
-                        <form asp-action="JoinProject" method="post">
-                            <input type="hidden" name="projectId" value="@Model.Id" />
-                            <button type="submit" class="btn btn-primary w-100">Join Project</button>
-                        </form>
-                        <a asp-action="AvailableProjects" class="btn btn-outline-secondary w-100">Back to Projects</a>
-                    </div>
+                    @{
+                        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                        var userAlreadyJoined = Model.Appusers.Any(u => u.Id == userId);
+                    }
+                    
+                    @if (userAlreadyJoined)
+                    {
+                        <h5 class="card-title">Already Joined</h5>
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i> You are already a volunteer for this project!
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a asp-action="MyProjects" class="btn btn-primary w-100">View My Projects</a>
+                            <a asp-action="AvailableProjects" class="btn btn-outline-secondary w-100">Back to Projects</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <h5 class="card-title">Join This Project</h5>
+                        <div class="d-grid gap-2">
+                            <form asp-action="JoinProject" method="post">
+                                <input type="hidden" name="projectId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-primary w-100">Join Project</button>
+                            </form>
+                            <a asp-action="AvailableProjects" class="btn btn-outline-secondary w-100">Back to Projects</a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
