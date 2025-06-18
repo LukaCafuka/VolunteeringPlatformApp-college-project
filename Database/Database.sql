@@ -1,0 +1,57 @@
+﻿CREATE TABLE ProjectType (
+	Id INT IDENTITY PRIMARY KEY,
+	Name NVARCHAR(70)  NOT NULL,
+	Description NVARCHAR(MAX) NULL
+)
+
+CREATE TABLE Skill (
+	Id INT IDENTITY PRIMARY KEY,
+	Name NVARCHAR(70)  NOT NULL,
+	Description NVARCHAR(MAX) NULL
+)
+
+CREATE TABLE AppUser (
+  Id INT IDENTITY(1,1) NOT NULL,
+  Username NVARCHAR(50) NOT NULL,
+  PswdHash NVARCHAR(256) NOT NULL,
+  PswdSalt NVARCHAR(256) NOT NULL,
+  FirstName NVARCHAR(256) NULL,
+  LastName NVARCHAR(256) NULL,
+  Email NVARCHAR(256) NULL,
+  IsAdmin BIT NOT NULL,
+  CONSTRAINT PK_User PRIMARY KEY CLUSTERED (
+    Id ASC
+  )
+)
+
+CREATE TABLE Project (
+	Id INT IDENTITY PRIMARY KEY,
+	Title NVARCHAR(100)  NOT NULL,
+	Description NVARCHAR(MAX) NULL,
+	CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	ProjectTypeId INT,
+	CONSTRAINT FK_ProjectType FOREIGN KEY (ProjectTypeId) REFERENCES ProjectType(id)
+)
+
+CREATE TABLE UserProject (
+    AppuserId INT NOT NULL,
+    ProjectId INT NOT NULL,
+    PRIMARY KEY (AppuserId, ProjectId),
+    CONSTRAINT FK_User_UserProject FOREIGN KEY (AppuserId) REFERENCES AppUser(id),
+    CONSTRAINT FK_Project_UserProject FOREIGN KEY (ProjectId) REFERENCES Project(id)
+)
+
+CREATE TABLE ProjectSkill (
+    ProjectId INT NOT NULL,
+    SkillId INT NOT NULL,
+    PRIMARY KEY (ProjectId, SkillId),
+    CONSTRAINT FK_Project_ProjectSkill FOREIGN KEY (ProjectId) REFERENCES Project(id),
+    CONSTRAINT FK_Skill_ProjectSkill FOREIGN KEY (SkillId) REFERENCES Skill(id)
+)
+
+CREATE TABLE LogEntry (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Timestamp DATETIME NOT NULL DEFAULT GETDATE(),
+    Level NVARCHAR(50) NOT NULL,
+    Message NVARCHAR(MAX) NOT NULL
+);
