@@ -33,15 +33,15 @@ namespace WebAPI.Controllers
                     .Include(p => p.Skills)
                     .Include(p => p.Appusers)
                     .Select(p => new ProjectDto
-                        {
-                            Id = p.Id,
-                            Title = p.Title,
-                            Description = p.Description,
-                            CreatedAt = p.CreatedAt,
-                            ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : null,
-                            SkillNames = p.Skills.Select(s => s.Name).ToList(),
-                            AppUserNames = p.Appusers.Select(u => u.Username).ToList()
-                        })
+                    {
+                        Id = p.Id,
+                        Title = p.Title,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : null,
+                        SkillNames = p.Skills.Select(s => s.Name).ToList(),
+                        AppUserNames = p.Appusers.Select(u => u.Username).ToList()
+                    })
                     .ToListAsync();
 
 
@@ -65,15 +65,15 @@ namespace WebAPI.Controllers
                 .Include(p => p.Skills)
                 .Include(p => p.Appusers)
                 .Select(p => new ProjectDto
-                    {
-                        Id = p.Id,
-                        Title = p.Title,
-                        Description = p.Description,
-                        CreatedAt = p.CreatedAt,
-                        ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : null,
-                        SkillNames = p.Skills.Select(s => s.Name).ToList(),
-                        AppUserNames = p.Appusers.Select(u => u.Username).ToList()
-                    })
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Description = p.Description,
+                    CreatedAt = p.CreatedAt,
+                    ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : null,
+                    SkillNames = p.Skills.Select(s => s.Name).ToList(),
+                    AppUserNames = p.Appusers.Select(u => u.Username).ToList()
+                })
                 .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (project == null)
@@ -92,22 +92,69 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<ProjectDto>>Create([FromBody] ProjectInputDto inputDto)
+        public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectInputDto inputDto)
         {
             try
             {
                 if (inputDto == null)
                 {
-                    return BadRequest("Project data is invalid.");
+                    return BadRequest("Project data is required.");
                 }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                if (inputDto.ProjectTypeId.HasValue)
+                {
+                    var projectTypeExists = await _context.ProjectTypes
+                        .AnyAsync(pt => pt.Id == inputDto.ProjectTypeId.Value);
+                    
+                    if (!projectTypeExists)
+                    {
+                        return BadRequest($"ProjectType with ID {inputDto.ProjectTypeId} does not exist.");
+                    }
+                }
+
+                if (inputDto.SkillIds != null && inputDto.SkillIds.Any())
+                {
+                    var existingSkillIds = await _context.Skills
+                        .Where(s => inputDto.SkillIds.Contains(s.Id))
+                        .Select(s => s.Id)
+                        .ToListAsync();
+                    
+                    var invalidSkillIds = inputDto.SkillIds.Except(existingSkillIds).ToList();
+                    if (invalidSkillIds.Any())
+                    {
+                        return BadRequest($"Skills with IDs [{string.Join(", ", invalidSkillIds)}] do not exist.");
+                    }
+                }
+
+                if (inputDto.AppUserIds != null && inputDto.AppUserIds.Any())
+                {
+                    var existingUserIds = await _context.AppUsers
+                        .Where(u => inputDto.AppUserIds.Contains(u.Id))
+                        .Select(u => u.Id)
+                        .ToListAsync();
+                    
+                    var invalidUserIds = inputDto.AppUserIds.Except(existingUserIds).ToList();
+                    if (invalidUserIds.Any())
+                    {
+                        return BadRequest($"Users with IDs [{string.Join(", ", invalidUserIds)}] do not exist.");
+                    }
+                }
+
 
                 var project = new Project
                 {
-                    Title = inputDto.Title,
-                    Description = inputDto.Description,
+                    Title = inputDto.Title.Trim(),
+                    Description = inputDto.Description?.Trim(),
                     ProjectTypeId = inputDto.ProjectTypeId,
                     CreatedAt = DateTime.UtcNow
                 };
+
+                _context.Projects.Add(project);
 
                 if (inputDto.SkillIds != null && inputDto.SkillIds.Any())
                 {
@@ -123,17 +170,50 @@ namespace WebAPI.Controllers
                         .ToListAsync();
                 }
 
-                _context.Projects.Add(project);
                 await _context.SaveChangesAsync();
 
-                await _logger.LogInformation($"Project with id={project.Id} created");
-                return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
+                var createdProject = await _context.Projects
+                    .Include(p => p.ProjectType)
+                    .Include(p => p.Skills)
+                    .Include(p => p.Appusers)
+                    .Select(p => new ProjectDto
+                    {
+                        Id = p.Id,
+                        Title = p.Title,
+                        Description = p.Description,
+                        CreatedAt = p.CreatedAt,
+                        ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : null,
+                        SkillNames = p.Skills.Select(s => s.Name).ToList(),
+                        AppUserNames = p.Appusers.Select(u => u.Username).ToList()
+                    })
+                    .FirstOrDefaultAsync(p => p.Id == project.Id);
+
+                await _logger.LogInformation($"Project '{project.Title}' with id={project.Id} created successfully");
+                
+                return CreatedAtAction(nameof(GetById), new { id = project.Id }, createdProject);
             }
-            catch (Exception)
+            catch (DbUpdateException dbEx)
             {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    "There has been a problem while creating the project");
+                await _logger.LogError($"Database error while creating project: {dbEx.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    "There was a database error while creating the project. Please check if all referenced entities exist.");
+            }
+            catch (InvalidOperationException invEx)
+            {
+                await _logger.LogError($"Invalid operation while creating project: {invEx.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    "There was an invalid operation while creating the project.");
+            }
+            catch (ArgumentException argEx)
+            {
+                await _logger.LogError($"Argument error while creating project: {argEx.Message}");
+                return BadRequest($"Invalid input: {argEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogError($"Unexpected error while creating project: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    "There has been an unexpected problem while creating the project");
             }
         }
 
@@ -238,7 +318,8 @@ namespace WebAPI.Controllers
                 var projects = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(p => new ProjectDto {
+                    .Select(p => new ProjectDto
+                    {
                         Id = p.Id,
                         Title = p.Title,
                         Description = p.Description,
