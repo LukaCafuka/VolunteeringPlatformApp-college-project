@@ -7,13 +7,10 @@ using WebApp.ViewModels;
 namespace WebApp.Controllers
 {
     [Authorize]
-    public class ProjectsController : Controller
+    public class ProjectsController : BaseController
     {
-        private readonly VolunteerappContext _context;
-
-        public ProjectsController(VolunteerappContext context)
+        public ProjectsController(VolunteerappContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<IActionResult> Index(string searchString, int? projectTypeId, int page = 1)

@@ -10,13 +10,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace WebApp.Controllers;
 
-public class UserController : Controller
+public class UserController : BaseController
 {
-    private readonly VolunteerappContext _context;
-
-    public UserController(VolunteerappContext context)
+    public UserController(VolunteerappContext context) : base(context)
     {
-        _context = context;
     }
 
     public IActionResult Index()
@@ -149,7 +146,7 @@ public class UserController : Controller
     [Authorize]
     public async Task<IActionResult> Profile()
     {
-        var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Username == User.Identity.Name);
+        var user = await GetCurrentUser();
         if (user == null)
             return NotFound();
         var vm = new WebApp.ViewModels.UserProfileVM
@@ -198,7 +195,10 @@ public class UserController : Controller
         user.FirstName = vm.FirstName;
         user.LastName = vm.LastName;
         user.Email = vm.Email;
+
+        _context.Entry(user).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+
         return Json(new { success = true, message = "Profile updated successfully." });
     }
 }

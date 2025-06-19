@@ -6,15 +6,13 @@ using WebApp.Models;
 
 namespace WebApp.Controllers;
 
-public class HomeController : Controller
+public class HomeController : BaseController
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly VolunteerappContext _context;
 
-    public HomeController(ILogger<HomeController> logger, VolunteerappContext context)
+    public HomeController(ILogger<HomeController> logger, VolunteerappContext context) : base(context)
     {
         _logger = logger;
-        _context = context;
     }
 
     public IActionResult Index()
