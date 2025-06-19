@@ -17,4 +17,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VolunteeringPlatformApp.Common\VolunteeringPlatformApp.Common.csproj" />
+  </ItemGroup>
+
 </Project>

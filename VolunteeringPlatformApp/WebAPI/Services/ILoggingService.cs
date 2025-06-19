@@ -1,4 +1,5 @@
 ﻿using WebAPI.Models;
+using VolunteeringPlatformApp.Common.Models;
 
 namespace WebAPI.Services
 {

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
-namespace WebAPI.Security
+namespace VolunteeringPlatformApp.Common.Security
 {
     public class PasswordHashProvider
     {
@@ -29,4 +29,4 @@ namespace WebAPI.Security
             return b64Hash;
         }
     }
-}
+} 

@@ -49,7 +49,7 @@ public class HomeController : BaseController
         string searchString, int? projectTypeId, int page)
     {
         // Get current user ID
-        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        var userId = GetCurrentUserId();
         
         var projects = _context.Projects
             .Include(p => p.ProjectType)
@@ -109,7 +109,7 @@ public class HomeController : BaseController
     [HttpPost]
     public async Task<IActionResult> JoinProject(int projectId)
     {
-        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        var userId = GetCurrentUserId();
         var project = await _context.Projects
             .Include(p => p.Appusers)
             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -142,18 +142,20 @@ public class HomeController : BaseController
     [Authorize]
     public async Task<IActionResult> MyProjects()
     {
-        var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-        var user = await _context.AppUsers
-            .Include(u => u.Projects)
-            .ThenInclude(p => p.ProjectType)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
+        var user = await GetCurrentUser();
         if (user == null)
         {
             return NotFound();
         }
 
-        return View(user.Projects);
+        var userWithProjects = await _context.AppUsers
+            .Include(u => u.Projects)
+            .ThenInclude(p => p.ProjectType)
+            .Include(u => u.Projects)
+            .ThenInclude(p => p.Skills)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        return View(userWithProjects?.Projects ?? new List<Project>());
     }
 
     [Authorize(Roles = "Admin")]

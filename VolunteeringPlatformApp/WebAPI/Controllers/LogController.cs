@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
+using VolunteeringPlatformApp.Common.Models;
 
 namespace WebAPI.Controllers
 {

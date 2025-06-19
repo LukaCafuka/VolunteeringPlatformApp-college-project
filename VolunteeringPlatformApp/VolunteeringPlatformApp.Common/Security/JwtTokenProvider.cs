@@ -1,13 +1,13 @@
-﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace WebAPI.Security
+namespace VolunteeringPlatformApp.Common.Security
 {
     public class JwtTokenProvider
     {
-        public static string CreateToken(string secureKey, int expiration, string subject = null, string role = null)
+        public static string CreateToken(string secureKey, int expiration, string subject = null, string role = null, string userId = null)
         {
             // Get secret key bytes
             var tokenKey = Encoding.UTF8.GetBytes(secureKey);
@@ -23,12 +23,21 @@ namespace WebAPI.Security
 
             if (!string.IsNullOrEmpty(subject))
             {
-                tokenDescriptor.Subject = new ClaimsIdentity(new System.Security.Claims.Claim[]
+                var claims = new List<Claim>
                 {
-                    new System.Security.Claims.Claim(ClaimTypes.Name, subject),
-                    new System.Security.Claims.Claim(JwtRegisteredClaimNames.Sub, subject),
-                    new System.Security.Claims.Claim(ClaimTypes.Role, role),
-                });
+                    new Claim(ClaimTypes.Name, subject),
+                    new Claim(JwtRegisteredClaimNames.Sub, subject),
+                    new Claim(ClaimTypes.Role, role ?? "User"),
+                };
+
+                // Add user ID if provided
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    claims.Add(new Claim("UserId", userId));
+                    claims.Add(new Claim(ClaimTypes.NameIdentifier, userId));
+                }
+
+                tokenDescriptor.Subject = new ClaimsIdentity(claims);
             }
 
             // Create token using that descriptor, serialize it and return it
@@ -39,4 +48,4 @@ namespace WebAPI.Security
             return serializedToken;
         }
     }
-}
+} 

@@ -1,0 +1,13 @@
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\bin\Debug\net8.0\VolunteeringPlatformApp.Common.deps.json
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\bin\Debug\net8.0\VolunteeringPlatformApp.Common.dll
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\bin\Debug\net8.0\VolunteeringPlatformApp.Common.pdb
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.csproj.AssemblyReference.cache
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.AssemblyInfoInputs.cache
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.AssemblyInfo.cs
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.csproj.CoreCompileInputs.cache
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.sourcelink.json
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.dll
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\refint\VolunteeringPlatformApp.Common.dll
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\VolunteeringPlatformApp.Common.pdb
+C:\Users\bubif\Desktop\rwa-projekt-volunteer\VolunteeringPlatformApp\VolunteeringPlatformApp.Common\obj\Debug\net8.0\ref\VolunteeringPlatformApp.Common.dll

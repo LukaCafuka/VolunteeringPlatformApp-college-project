@@ -35,6 +35,12 @@
 <ul class="navbar-nav">
     @if (User.Identity?.IsAuthenticated == true)
     {
+        @if (Model)
+        {
+            <li class="nav-item d-flex align-items-center">
+                <span class="badge bg-danger me-2">Administrator</span>
+            </li>
+        }
         <li class="nav-item">
             <a class="nav-link text-dark" asp-controller="User" asp-action="Profile">Profile</a>
         </li>

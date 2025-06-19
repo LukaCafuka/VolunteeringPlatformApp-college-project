@@ -1,8 +1,7 @@
-namespace WebAPI.Models
+namespace VolunteeringPlatformApp.Common.Constants
 {
     public static class ValidationConstants
     {
-        // User validation constants
         public const int UsernameMinLength = 3;
         public const int UsernameMaxLength = 50;
         public const int PasswordMinLength = 8;
@@ -11,11 +10,9 @@ namespace WebAPI.Models
         public const int NameMaxLength = 50;
         public const int EmailMaxLength = 256;
 
-        // Project validation constants
         public const int ProjectTitleMaxLength = 100;
         public const int ProjectDescriptionMaxLength = 2000;
 
-        // Common validation error messages
         public static class ErrorMessages
         {
             public const string Required = "{0} is required";

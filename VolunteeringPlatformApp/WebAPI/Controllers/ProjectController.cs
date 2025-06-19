@@ -109,7 +109,6 @@ namespace WebAPI.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // Add related skills
                 if (inputDto.SkillIds != null && inputDto.SkillIds.Any())
                 {
                     project.Skills = await _context.Skills
@@ -117,7 +116,6 @@ namespace WebAPI.Controllers
                         .ToListAsync();
                 }
 
-                // Add related users
                 if (inputDto.AppUserIds != null && inputDto.AppUserIds.Any())
                 {
                     project.Appusers = await _context.AppUsers

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WebApp.ViewModels;
 using WebApp.Models;
-using WebApp.Security;
+using VolunteeringPlatformApp.Common.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
@@ -57,11 +57,9 @@ public class UserController : BaseController
                 return View(loginVm);
             }
 
-            // Create JWT token
             var secureKey = HttpContext.RequestServices.GetService<IConfiguration>()["JWT:SecureKey"];
-            var token = JwtTokenProvider.CreateToken(secureKey, 60, loginVm.Username, existingUser.IsAdmin ? "Admin" : "User");
+            var token = JwtTokenProvider.CreateToken(secureKey, 60, loginVm.Username, existingUser.IsAdmin ? "Admin" : "User", existingUser.Id.ToString());
 
-            // Store token in cookie for web app usage
             Response.Cookies.Append("access_token", token, new CookieOptions
             {
                 HttpOnly = true,
@@ -70,7 +68,6 @@ public class UserController : BaseController
                 Expires = DateTimeOffset.UtcNow.AddMinutes(60)
             });
 
-            // Store user info in session for UI purposes
             HttpContext.Session.SetString("Username", existingUser.Username);
             HttpContext.Session.SetString("IsAdmin", existingUser.IsAdmin.ToString());
             HttpContext.Session.SetString("UserId", existingUser.Id.ToString());

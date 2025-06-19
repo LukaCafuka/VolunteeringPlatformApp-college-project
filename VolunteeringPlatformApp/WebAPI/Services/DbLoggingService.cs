@@ -1,5 +1,6 @@
 ﻿using WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using VolunteeringPlatformApp.Common.Models;
 
 namespace WebAPI.Services
 {

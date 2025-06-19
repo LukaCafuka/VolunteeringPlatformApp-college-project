@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WebApp.Models;
+using VolunteeringPlatformApp.Common.Constants;
 
 namespace WebApp.ViewModels
 {

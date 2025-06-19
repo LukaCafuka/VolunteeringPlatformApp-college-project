@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using WebAPI.Dtos;
 using WebAPI.Models;
-using WebAPI.Security;
+using VolunteeringPlatformApp.Common.Security;
 
 namespace WebAPI.Controllers
 {
@@ -26,7 +26,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                // Check if there is such a username in the database already
+
                 var trimmedUsername = registerDto.Username.Trim();
                 if (_context.AppUsers.Any(x => x.Username.Equals(trimmedUsername)))
                     return BadRequest($"Username {trimmedUsername} already exists");
@@ -35,7 +35,6 @@ namespace WebAPI.Controllers
                 var b64salt = PasswordHashProvider.GetSalt();
                 var b64hash = PasswordHashProvider.GetHash(registerDto.Password, b64salt);
 
-                // Create user from DTO and hashed password
                 var user = new AppUser
                 {
                     Id = registerDto.Id,
@@ -48,11 +47,9 @@ namespace WebAPI.Controllers
                     Email = registerDto.Email,
                 };
 
-                // Add user and save changes to database
                 _context.Add(user);
                 _context.SaveChanges();
 
-                // Update DTO Id to return it to the client
                 registerDto.Id = user.Id;
 
                 return Ok(registerDto);
@@ -71,18 +68,16 @@ namespace WebAPI.Controllers
             {
                 var genericLoginFail = "Incorrect username or password";
 
-                // Try to get a user from database
                 var existingUser = _context.AppUsers.FirstOrDefault(x => x.Username == loginDto.Username);
                 if (existingUser == null)
                     return Unauthorized(genericLoginFail);
 
-                // Check is password hash matches
                 var b64hash = PasswordHashProvider.GetHash(loginDto.Password, existingUser.PswdSalt);
                 if (b64hash != existingUser.PswdHash)
                     return Unauthorized(genericLoginFail);
 
                 var secureKey = _configuration["JWT:SecureKey"];
-                var serializedToken = JwtTokenProvider.CreateToken(secureKey, 60, loginDto.Username, "User");
+                var serializedToken = JwtTokenProvider.CreateToken(secureKey, 60, loginDto.Username, existingUser.IsAdmin ? "Admin" : "User", existingUser.Id.ToString());
 
                 return Ok(serializedToken);
             }

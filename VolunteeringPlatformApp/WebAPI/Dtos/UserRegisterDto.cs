@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WebAPI.Models;
+using VolunteeringPlatformApp.Common.Constants;
 
 namespace WebAPI.Dtos
 {
