@@ -84,35 +84,63 @@ namespace WebApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Project project, int[] selectedSkills)
         {
-            var trimmedTitle = project.Title?.Trim();
-            if (string.IsNullOrWhiteSpace(trimmedTitle))
+            try
             {
-                ModelState.AddModelError("Title", "Title is required.");
-            }
-
-            if (ModelState.IsValid)
-            {
-                project.Title = trimmedTitle;
-                if (selectedSkills != null)
+                var trimmedTitle = project.Title?.Trim();
+                if (string.IsNullOrWhiteSpace(trimmedTitle))
                 {
-                    foreach (var skillId in selectedSkills)
-                    {
-                        var skill = await _context.Skills.FindAsync(skillId);
-                        if (skill != null)
-                        {
-                            project.Skills.Add(skill);
-                        }
-                    }
+                    ModelState.AddModelError("Title", "Title is required.");
                 }
 
-                _context.Add(project);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+                if (ModelState.IsValid)
+                {
+                    project.Title = trimmedTitle;
+                    if (selectedSkills != null)
+                    {
+                        foreach (var skillId in selectedSkills)
+                        {
+                            var skill = await _context.Skills.FindAsync(skillId);
+                            if (skill != null)
+                            {
+                                project.Skills.Add(skill);
+                            }
+                        }
+                    }
 
-            ViewBag.ProjectTypes = _context.ProjectTypes.ToList();
-            ViewBag.Skills = _context.Skills.ToList();
-            return View(project);
+                    _context.Add(project);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Project created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ProjectTypes = _context.ProjectTypes.ToList();
+                ViewBag.Skills = _context.Skills.ToList();
+                return View(project);
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError("", "Database error occurred while creating project. Please try again.");
+                Console.WriteLine($"Database error in Create: {ex.Message}");
+                ViewBag.ProjectTypes = _context.ProjectTypes.ToList();
+                ViewBag.Skills = _context.Skills.ToList();
+                return View(project);
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", "Invalid data provided. Please check your input.");
+                Console.WriteLine($"Argument error in Create: {ex.Message}");
+                ViewBag.ProjectTypes = _context.ProjectTypes.ToList();
+                ViewBag.Skills = _context.Skills.ToList();
+                return View(project);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred. Please try again later.");
+                Console.WriteLine($"Unexpected error in Create: {ex.Message}");
+                ViewBag.ProjectTypes = _context.ProjectTypes.ToList();
+                ViewBag.Skills = _context.Skills.ToList();
+                return View(project);
+            }
         }
 
         [Authorize(Roles = "Admin")]
@@ -231,22 +259,50 @@ namespace WebApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var project = await _context.Projects
-                .Include(p => p.Skills)
-                .Include(p => p.Appusers)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (project != null)
+            try
             {
-                project.Skills.Clear();
-                project.Appusers.Clear();
+                var project = await _context.Projects
+                    .Include(p => p.Skills)
+                    .Include(p => p.Appusers)
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
-                await _context.SaveChangesAsync();
+                if (project != null)
+                {
+                    project.Skills.Clear();
+                    project.Appusers.Clear();
 
-                _context.Projects.Remove(project);
-                await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
+
+                    _context.Projects.Remove(project);
+                    await _context.SaveChangesAsync();
+                    
+                    TempData["Success"] = "Project deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Project not found.";
+                }
+                
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (DbUpdateException ex)
+            {
+                TempData["Error"] = "Database error occurred while deleting project. Please try again.";
+                Console.WriteLine($"Database error in DeleteConfirmed: {ex.Message}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = "Cannot delete project due to existing dependencies.";
+                Console.WriteLine($"Operation error in DeleteConfirmed: {ex.Message}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An unexpected error occurred while deleting project.";
+                Console.WriteLine($"Unexpected error in DeleteConfirmed: {ex.Message}");
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private bool ProjectExists(int id)

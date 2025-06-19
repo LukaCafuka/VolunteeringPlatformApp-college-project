@@ -28,66 +28,93 @@ public class UserController : BaseController
             ReturnUrl = returnUrl
         };
 
-        return View();
+        return View(loginVm);
     }
 
     [HttpPost]
-    public IActionResult Login(LoginVM loginVm)
+    public async Task<IActionResult> Login(LoginVM loginVm)
     {
-        // Try to get a user from database
-        var existingUser =
-            _context
-                .AppUsers
-                .FirstOrDefault(x => x.Username == loginVm.Username);
-
-        if (existingUser == null)
+        try
         {
-            ModelState.AddModelError("", "Invalid username or password");
-            return View();
-        }
+            if (!ModelState.IsValid)
+            {
+                return View(loginVm);
+            }
 
-        // Check if password hash matches
-        var hash = PasswordHashProvider.GetHash(loginVm.Password, existingUser.PswdSalt);
-        if (hash != existingUser.PswdHash)
+            var existingUser = await _context.AppUsers
+                .FirstOrDefaultAsync(x => x.Username == loginVm.Username);
+
+            if (existingUser == null)
+            {
+                ModelState.AddModelError("", "Invalid username or password");
+                return View(loginVm);
+            }
+
+            var hash = PasswordHashProvider.GetHash(loginVm.Password, existingUser.PswdSalt);
+            if (hash != existingUser.PswdHash)
+            {
+                ModelState.AddModelError("", "Invalid username or password");
+                return View(loginVm);
+            }
+
+            // Create JWT token
+            var secureKey = HttpContext.RequestServices.GetService<IConfiguration>()["JWT:SecureKey"];
+            var token = JwtTokenProvider.CreateToken(secureKey, 60, loginVm.Username, existingUser.IsAdmin ? "Admin" : "User");
+
+            // Store token in cookie for web app usage
+            Response.Cookies.Append("access_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(60)
+            });
+
+            // Store user info in session for UI purposes
+            HttpContext.Session.SetString("Username", existingUser.Username);
+            HttpContext.Session.SetString("IsAdmin", existingUser.IsAdmin.ToString());
+            HttpContext.Session.SetString("UserId", existingUser.Id.ToString());
+
+            if (!string.IsNullOrEmpty(loginVm.ReturnUrl))
+                return LocalRedirect(loginVm.ReturnUrl);
+            else if (existingUser.IsAdmin)
+                return RedirectToAction("Index", "Projects");
+            else
+                return RedirectToAction("Index", "Home");
+        }
+        catch (DbUpdateException ex)
         {
-            ModelState.AddModelError("", "Invalid username or password");
-            return View();
+            ModelState.AddModelError("", "Database error occurred. Please try again later.");
+            Console.WriteLine($"Database error in Login: {ex.Message}");
+            return View(loginVm);
         }
-
-        var claims = new List<Claim>() {
-            new Claim(ClaimTypes.Name, loginVm.Username),
-            new Claim(ClaimTypes.Role, existingUser.IsAdmin ? "Admin" : "User"),
-            new Claim("UserId", existingUser.Id.ToString())
-        };
-
-        var claimsIdentity = new ClaimsIdentity(
-            claims,
-            CookieAuthenticationDefaults.AuthenticationScheme);
-
-        var authProperties = new AuthenticationProperties();
-
-        // We need to wrap async code here into synchronous since we don't use async methods
-        Task.Run(async () =>
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties)
-        ).GetAwaiter().GetResult();
-
-        if (loginVm.ReturnUrl != null)
-            return LocalRedirect(loginVm.ReturnUrl);
-        else if (existingUser.IsAdmin)
-            return RedirectToAction("Index", "Projects");
-        else
-            return RedirectToAction("Index", "Home");
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError("", "Configuration error. Please contact support.");
+            Console.WriteLine($"Configuration error in Login: {ex.Message}");
+            return View(loginVm);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", "Invalid input provided.");
+            Console.WriteLine($"Argument error in Login: {ex.Message}");
+            return View(loginVm);
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", "An unexpected error occurred. Please try again later.");
+            Console.WriteLine($"Unexpected error in Login: {ex.Message}");
+            return View(loginVm);
+        }
     }
 
     public IActionResult Logout()
     {
-        Task.Run(async () =>
-            await HttpContext.SignOutAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme)
-        ).GetAwaiter().GetResult();
+        // Remove JWT token cookie
+        Response.Cookies.Delete("access_token");
+        
+        // Clear session
+        HttpContext.Session.Clear();
 
         return RedirectToAction("Index", "Home");
     }
@@ -98,27 +125,32 @@ public class UserController : BaseController
     }
 
     [HttpPost]
-    public IActionResult Register(UserVM userVm)
+    public async Task<IActionResult> Register(UserVM userVm)
     {
         try
         {
-            // Check if there is such a username in the database already
+            if (!ModelState.IsValid)
+            {
+                return View(userVm);
+            }
+
             var trimmedUsername = userVm.Username.Trim();
-            if (_context.AppUsers.Any(x => x.Username.Equals(trimmedUsername)))
+            var existingUser = await _context.AppUsers
+                .AnyAsync(x => x.Username.ToLower() == trimmedUsername.ToLower());
+
+            if (existingUser)
             {
                 ModelState.AddModelError("Username", "Username is already taken");
                 return View(userVm);
             }
 
-            // Generate salt and hash password
             var salt = PasswordHashProvider.GetSalt();
             var hash = PasswordHashProvider.GetHash(userVm.Password, salt);
 
-            // Create user from DTO and hashed password
             var user = new AppUser
             {
                 Id = userVm.Id,
-                Username = userVm.Username,
+                Username = trimmedUsername,
                 PswdHash = hash,
                 PswdSalt = salt,
                 FirstName = userVm.FirstName,
@@ -127,18 +159,28 @@ public class UserController : BaseController
                 IsAdmin = false
             };
 
-            // Add user and save changes to database
             _context.Add(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            // Update DTO Id to return it to the client
-            userVm.Id = user.Id;
-
+            TempData["Success"] = "Registration successful! Please log in.";
             return RedirectToAction("Login");
+        }
+        catch (DbUpdateException ex)
+        {
+            ModelState.AddModelError("", "Database error occurred during registration. Please try again.");
+            Console.WriteLine($"Database error in Register: {ex.Message}");
+            return View(userVm);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", "Invalid data provided. Please check your input.");
+            Console.WriteLine($"Argument error in Register: {ex.Message}");
+            return View(userVm);
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError("", "An error occurred while registering. Please try again.");
+            ModelState.AddModelError("", "An unexpected error occurred during registration. Please try again.");
+            Console.WriteLine($"Unexpected error in Register: {ex.Message}");
             return View(userVm);
         }
     }
@@ -146,60 +188,97 @@ public class UserController : BaseController
     [Authorize]
     public async Task<IActionResult> Profile()
     {
-        var user = await GetCurrentUser();
-        if (user == null)
-            return NotFound();
-        var vm = new WebApp.ViewModels.UserProfileVM
+        try
         {
-            Id = user.Id,
-            Username = user.Username,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            IsAdmin = user.IsAdmin
-        };
-        return View(vm);
+            var user = await GetCurrentUser();
+            if (user == null)
+                return NotFound();
+
+            var vm = new WebApp.ViewModels.UserProfileVM
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                IsAdmin = user.IsAdmin
+            };
+            return View(vm);
+        }
+        catch (DbUpdateException ex)
+        {
+            TempData["Error"] = "Database error occurred. Please try again later.";
+            Console.WriteLine($"Database error in Profile: {ex.Message}");
+            return RedirectToAction("Index", "Home");
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "An unexpected error occurred. Please try again later.";
+            Console.WriteLine($"Unexpected error in Profile: {ex.Message}");
+            return RedirectToAction("Index", "Home");
+        }
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] WebApp.ViewModels.UserProfileVM vm)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                );
-            return Json(new { success = false, errors });
-        }
-        var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == vm.Id);
-        if (user == null)
-            return Json(new { success = false, message = "User not found." });
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, errors });
+            }
 
-        // Username uniqueness check (exclude self)
-        var trimmedUsername = vm.Username.Trim();
-        if (_context.AppUsers.Any(u => u.Id != vm.Id && u.Username.ToLower() == trimmedUsername.ToLower()))
+            var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == vm.Id);
+            if (user == null)
+                return Json(new { success = false, message = "User not found." });
+
+            var trimmedUsername = vm.Username.Trim();
+            var usernameExists = await _context.AppUsers
+                .AnyAsync(u => u.Id != vm.Id && u.Username.ToLower() == trimmedUsername.ToLower());
+
+            if (usernameExists)
+            {
+                ModelState.AddModelError("Username", "A user with this username already exists.");
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, errors });
+            }
+
+            user.Username = trimmedUsername;
+            user.FirstName = vm.FirstName;
+            user.LastName = vm.LastName;
+            user.Email = vm.Email;
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Profile updated successfully." });
+        }
+        catch (DbUpdateException ex)
         {
-            ModelState.AddModelError("Username", "A user with this username already exists.");
-            var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                );
-            return Json(new { success = false, errors });
+            Console.WriteLine($"Database error in UpdateProfile: {ex.Message}");
+            return Json(new { success = false, message = "Database error occurred. Please try again later." });
         }
-
-        user.Username = vm.Username;
-        user.FirstName = vm.FirstName;
-        user.LastName = vm.LastName;
-        user.Email = vm.Email;
-
-        _context.Entry(user).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-
-        return Json(new { success = true, message = "Profile updated successfully." });
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Argument error in UpdateProfile: {ex.Message}");
+            return Json(new { success = false, message = "Invalid data provided." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error in UpdateProfile: {ex.Message}");
+            return Json(new { success = false, message = "An unexpected error occurred. Please try again later." });
+        }
     }
 }
 

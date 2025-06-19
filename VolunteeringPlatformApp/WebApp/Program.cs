@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using WebApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,14 +21,44 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// Configure JWT Authentication
+var secureKey = builder.Configuration["JWT:SecureKey"];
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.LoginPath = "/User/Login";
-        options.LogoutPath = "/User/Logout";
-        options.AccessDeniedPath = "/User/Forbidden";
-        options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        var key = Encoding.UTF8.GetBytes(secureKey);
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ClockSkew = TimeSpan.Zero
+        };
+
+        // Configure JWT for web apps (read from cookies or headers)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Try to get token from Authorization header first
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                
+                // If not found, try to get from cookie
+                if (string.IsNullOrEmpty(token))
+                {
+                    token = context.Request.Cookies["access_token"];
+                }
+                
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+                
+                return Task.CompletedTask;
+            }
+        };
     });
 
 var app = builder.Build();
