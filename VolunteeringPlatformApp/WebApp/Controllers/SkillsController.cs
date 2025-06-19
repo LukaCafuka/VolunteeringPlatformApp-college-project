@@ -12,7 +12,6 @@ namespace WebApp.Controllers
         {
         }
 
-        // GET: Skills
         public async Task<IActionResult> Index()
         {
             if (!await IsAdmin())
@@ -23,7 +22,6 @@ namespace WebApp.Controllers
             return View(await _context.Skills.ToListAsync());
         }
 
-        // GET: Skills/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (!await IsAdmin())
@@ -46,7 +44,6 @@ namespace WebApp.Controllers
             return View(skill);
         }
 
-        // GET: Skills/Create
         public async Task<IActionResult> Create()
         {
             if (!await IsAdmin())
@@ -57,7 +54,6 @@ namespace WebApp.Controllers
             return View();
         }
 
-        // POST: Skills/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description")] Skill skill)
@@ -83,7 +79,6 @@ namespace WebApp.Controllers
             return View(skill);
         }
 
-        // GET: Skills/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (!await IsAdmin())
@@ -104,7 +99,6 @@ namespace WebApp.Controllers
             return View(skill);
         }
 
-        // POST: Skills/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Skill skill)
@@ -119,7 +113,6 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            // Unique name check (exclude self)
             var trimmedName = skill.Name.Trim();
             if (_context.Skills.Any(s => s.Id != id && s.Name.ToLower() == trimmedName.ToLower()))
             {
@@ -149,7 +142,6 @@ namespace WebApp.Controllers
             return View(skill);
         }
 
-        // GET: Skills/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (!await IsAdmin())
@@ -172,7 +164,6 @@ namespace WebApp.Controllers
             return View(skill);
         }
 
-        // POST: Skills/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

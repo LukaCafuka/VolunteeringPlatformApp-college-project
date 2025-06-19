@@ -51,7 +51,6 @@
                 partial: true
             }, function(data) {
                 $('#projectsContainer').html(data);
-                // Update URL without page reload
                 const url = new URL(window.location);
                 url.searchParams.set('page', page);
                 if (searchString) url.searchParams.set('searchString', searchString);
@@ -64,7 +63,6 @@
             loadPage(1);
         }
 
-        // Handle browser back/forward buttons
         window.onpopstate = function() {
             const url = new URL(window.location);
             const page = url.searchParams.get('page') || 1;

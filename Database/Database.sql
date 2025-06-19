@@ -55,3 +55,23 @@ CREATE TABLE LogEntry (
     Level NVARCHAR(50) NOT NULL,
     Message NVARCHAR(MAX) NOT NULL
 );
+
+INSERT INTO Skill(Name, Description) VALUES ('Dobra komunikacija','Volonter je sposoban ispravno komunicirati')
+INSERT INTO Skill(Name, Description) VALUES ('Odlučan','Spreman dati ispravne odluke u kratkom vremenskom periodu')
+INSERT INTO Skill(Name, Description) VALUES ('Prosječno znanje informatike','Volonter ima prosječno znanje informatičkih sustava')
+SELECT * FROM Skill
+
+INSERT INTO ProjectType(Name, Description) VALUES ('IT', 'Information Technology')
+INSERT INTO ProjectType(Name, Description) VALUES ('Agriculture', 'Agriculture')
+INSERT INTO ProjectType(Name, Description) VALUES ('Tourism', 'Tourists')
+SELECT * FROM ProjectType
+
+INSERT INTO Project(Title, Description, ProjectTypeId) VALUES ('Help make an AI chatbot','Help us make an AI chatbot',1)
+INSERT INTO Project(Title, Description, ProjectTypeId) VALUES ('Provide IT help to customers','Provide IT help to customers',1)
+SELECT * FROM Project
+
+INSERT INTO AppUser(Username, PswdSalt, PswdHash, IsAdmin, FirstName, LastName, Email) VALUES ('admin', 'uR03I43bwj+xI90PflCoJA==', 'cUiehoPjgd71AVx4B5hxL8+UT8IM9dGL2P1G4CMnoTA=', 1, 'Luka', 'Filipić', 'luka@z.com.hr')
+SELECT * FROM AppUser
+
+
+INSERT INTO ProjectSkill(ProjectId, SkillId) VALUES (1, 1)

@@ -16,7 +16,6 @@ namespace WebApp.Controllers
             _context = context;
         }
 
-        // GET: Projects
         public async Task<IActionResult> Index(string searchString, int? projectTypeId, int page = 1)
         {
             var projects = _context.Projects
@@ -54,7 +53,6 @@ namespace WebApp.Controllers
             return View(projectsList);
         }
 
-        // GET: Projects/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -76,7 +74,6 @@ namespace WebApp.Controllers
             return View(project);
         }
 
-        // GET: Projects/Create
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
@@ -85,13 +82,11 @@ namespace WebApp.Controllers
             return View();
         }
 
-        // POST: Projects/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Project project, int[] selectedSkills)
         {
-            // Only check if title is required
             var trimmedTitle = project.Title?.Trim();
             if (string.IsNullOrWhiteSpace(trimmedTitle))
             {
@@ -100,7 +95,7 @@ namespace WebApp.Controllers
 
             if (ModelState.IsValid)
             {
-                project.Title = trimmedTitle; // Ensure we save the trimmed title
+                project.Title = trimmedTitle;
                 if (selectedSkills != null)
                 {
                     foreach (var skillId in selectedSkills)
@@ -123,7 +118,6 @@ namespace WebApp.Controllers
             return View(project);
         }
 
-        // GET: Projects/Edit/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -146,7 +140,6 @@ namespace WebApp.Controllers
             return View(project);
         }
 
-        // POST: Projects/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -157,7 +150,6 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            // Only check if title is required
             var trimmedTitle = project.Title?.Trim();
             if (string.IsNullOrWhiteSpace(trimmedTitle))
             {
@@ -177,7 +169,7 @@ namespace WebApp.Controllers
                         return NotFound();
                     }
 
-                    existingProject.Title = trimmedTitle; // Use the trimmed title
+                    existingProject.Title = trimmedTitle;
                     existingProject.Description = project.Description;
                     existingProject.ProjectTypeId = project.ProjectTypeId;
 
@@ -215,7 +207,6 @@ namespace WebApp.Controllers
             return View(project);
         }
 
-        // GET: Projects/Delete/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -238,7 +229,6 @@ namespace WebApp.Controllers
             return View(project);
         }
 
-        // POST: Projects/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -251,16 +241,11 @@ namespace WebApp.Controllers
 
             if (project != null)
             {
-                // Remove project-skill relationships
                 project.Skills.Clear();
-                
-                // Remove project-user relationships
                 project.Appusers.Clear();
-                
-                // Save changes to remove relationships
+
                 await _context.SaveChangesAsync();
-                
-                // Now remove the project
+
                 _context.Projects.Remove(project);
                 await _context.SaveChangesAsync();
             }

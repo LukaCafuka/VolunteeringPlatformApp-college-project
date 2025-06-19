@@ -14,12 +14,12 @@ namespace WebAPI.Controllers
     //[Authorize]
     public class ProjectController : ControllerBase
     {
-        private readonly VolunteerappContext _dbContext;
+        private readonly VolunteerappContext _context;
         private readonly DbLoggingService _logger;
 
         public ProjectController(VolunteerappContext dbContext, DbLoggingService logger)
         {
-            _dbContext = dbContext;
+            _context = dbContext;
             _logger = logger;
         }
 
@@ -28,7 +28,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var projects = await _dbContext.Projects
+                var projects = await _context.Projects
                     .Include(p => p.ProjectType)
                     .Include(p => p.Skills)
                     .Include(p => p.Appusers)
@@ -60,7 +60,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var project = await _dbContext.Projects
+                var project = await _context.Projects
                 .Include(p => p.ProjectType)
                 .Include(p => p.Skills)
                 .Include(p => p.Appusers)
@@ -112,7 +112,7 @@ namespace WebAPI.Controllers
                 // Add related skills
                 if (inputDto.SkillIds != null && inputDto.SkillIds.Any())
                 {
-                    project.Skills = await _dbContext.Skills
+                    project.Skills = await _context.Skills
                         .Where(s => inputDto.SkillIds.Contains(s.Id))
                         .ToListAsync();
                 }
@@ -120,13 +120,13 @@ namespace WebAPI.Controllers
                 // Add related users
                 if (inputDto.AppUserIds != null && inputDto.AppUserIds.Any())
                 {
-                    project.Appusers = await _dbContext.AppUsers
+                    project.Appusers = await _context.AppUsers
                         .Where(u => inputDto.AppUserIds.Contains(u.Id))
                         .ToListAsync();
                 }
 
-                _dbContext.Projects.Add(project);
-                await _dbContext.SaveChangesAsync();
+                _context.Projects.Add(project);
+                await _context.SaveChangesAsync();
 
                 await _logger.LogInformation($"Project with id={project.Id} created");
                 return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
@@ -144,7 +144,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var existingProject = await _dbContext.Projects
+                var existingProject = await _context.Projects
             .Include(p => p.Skills)
             .Include(p => p.Appusers)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -158,24 +158,22 @@ namespace WebAPI.Controllers
                 existingProject.Description = inputDto.Description;
                 existingProject.ProjectTypeId = inputDto.ProjectTypeId;
 
-                // Update related skills
                 if (inputDto.SkillIds != null)
                 {
-                    existingProject.Skills = await _dbContext.Skills
+                    existingProject.Skills = await _context.Skills
                         .Where(s => inputDto.SkillIds.Contains(s.Id))
                         .ToListAsync();
                 }
 
-                // Update related users
                 if (inputDto.AppUserIds != null)
                 {
-                    existingProject.Appusers = await _dbContext.AppUsers
+                    existingProject.Appusers = await _context.AppUsers
                         .Where(u => inputDto.AppUserIds.Contains(u.Id))
                         .ToListAsync();
                 }
 
-                _dbContext.Entry(existingProject).State = EntityState.Modified;
-                await _dbContext.SaveChangesAsync();
+                _context.Entry(existingProject).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
 
                 await _logger.LogInformation($"Project with id={existingProject.Id} updated");
                 return Ok(existingProject);
@@ -193,7 +191,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var project = await _dbContext.Projects
+                var project = await _context.Projects
                 .Include(p => p.Skills)
                 .Include(p => p.Appusers)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -206,8 +204,8 @@ namespace WebAPI.Controllers
                 project.Skills.Clear();
                 project.Appusers.Clear();
 
-                _dbContext.Projects.Remove(project);
-                await _dbContext.SaveChangesAsync();
+                _context.Projects.Remove(project);
+                await _context.SaveChangesAsync();
 
                 await _logger.LogInformation($"Project with id={project.Id} deleted");
                 return Ok($"Project with ID {id} has been deleted.");
@@ -226,7 +224,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                var query = _dbContext.Projects
+                var query = _context.Projects
                     .Include(p => p.ProjectType)
                     .Include(p => p.Skills)
                     .Include(p => p.Appusers)

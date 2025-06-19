@@ -57,7 +57,7 @@ public class HomeController : Controller
             .Include(p => p.ProjectType)
             .Include(p => p.Skills)
             .Include(p => p.Appusers)
-            .Where(p => !p.Appusers.Any(u => u.Id == userId)) // Exclude projects user has already joined
+            .Where(p => !p.Appusers.Any(u => u.Id == userId))
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(searchString))

@@ -12,13 +12,13 @@ namespace WebAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly VolunteerappContext _dbContext;
+        private readonly VolunteerappContext _context;
         private readonly IConfiguration _configuration;
 
         public UserController(VolunteerappContext dbContext, IConfiguration configuration)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
+            _context = dbContext;
         }
 
         [HttpPost("[action]")]
@@ -28,7 +28,7 @@ namespace WebAPI.Controllers
             {
                 // Check if there is such a username in the database already
                 var trimmedUsername = registerDto.Username.Trim();
-                if (_dbContext.AppUsers.Any(x => x.Username.Equals(trimmedUsername)))
+                if (_context.AppUsers.Any(x => x.Username.Equals(trimmedUsername)))
                     return BadRequest($"Username {trimmedUsername} already exists");
 
                 // Hash the password
@@ -49,8 +49,8 @@ namespace WebAPI.Controllers
                 };
 
                 // Add user and save changes to database
-                _dbContext.Add(user);
-                _dbContext.SaveChanges();
+                _context.Add(user);
+                _context.SaveChanges();
 
                 // Update DTO Id to return it to the client
                 registerDto.Id = user.Id;
@@ -72,7 +72,7 @@ namespace WebAPI.Controllers
                 var genericLoginFail = "Incorrect username or password";
 
                 // Try to get a user from database
-                var existingUser = _dbContext.AppUsers.FirstOrDefault(x => x.Username == loginDto.Username);
+                var existingUser = _context.AppUsers.FirstOrDefault(x => x.Username == loginDto.Username);
                 if (existingUser == null)
                     return Unauthorized(genericLoginFail);
 

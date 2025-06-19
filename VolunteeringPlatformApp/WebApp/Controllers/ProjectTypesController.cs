@@ -12,7 +12,6 @@ namespace WebApp.Controllers
         {
         }
 
-        // GET: ProjectTypes
         public async Task<IActionResult> Index()
         {
             if (!await IsAdmin())
@@ -23,7 +22,6 @@ namespace WebApp.Controllers
             return View(await _context.ProjectTypes.ToListAsync());
         }
 
-        // GET: ProjectTypes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (!await IsAdmin())
@@ -46,7 +44,6 @@ namespace WebApp.Controllers
             return View(projectType);
         }
 
-        // GET: ProjectTypes/Create
         public async Task<IActionResult> Create()
         {
             if (!await IsAdmin())
@@ -57,7 +54,6 @@ namespace WebApp.Controllers
             return View();
         }
 
-        // POST: ProjectTypes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description")] ProjectType projectType)
@@ -67,7 +63,6 @@ namespace WebApp.Controllers
                 return RedirectToAction("Index", "Projects");
             }
 
-            // Unique name check
             var trimmedName = projectType.Name.Trim();
             if (_context.ProjectTypes.Any(pt => pt.Name.ToLower() == trimmedName.ToLower()))
             {
@@ -83,7 +78,6 @@ namespace WebApp.Controllers
             return View(projectType);
         }
 
-        // GET: ProjectTypes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (!await IsAdmin())
@@ -104,7 +98,6 @@ namespace WebApp.Controllers
             return View(projectType);
         }
 
-        // POST: ProjectTypes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] ProjectType projectType)
@@ -119,7 +112,6 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            // Unique name check (exclude self)
             var trimmedName = projectType.Name.Trim();
             if (_context.ProjectTypes.Any(pt => pt.Id != id && pt.Name.ToLower() == trimmedName.ToLower()))
             {
@@ -149,7 +141,6 @@ namespace WebApp.Controllers
             return View(projectType);
         }
 
-        // GET: ProjectTypes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (!await IsAdmin())
@@ -172,7 +163,6 @@ namespace WebApp.Controllers
             return View(projectType);
         }
 
-        // POST: ProjectTypes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
