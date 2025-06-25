@@ -72,6 +72,8 @@ public partial class VolunteerappContext : DbContext
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.Message).IsRequired();
+            entity.Ignore(e => e.Exception); // Ignore Exception property since it doesn't exist in DB
         });
 
         modelBuilder.Entity<Project>(entity =>
