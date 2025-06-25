@@ -11,7 +11,6 @@ namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
     public class ProjectController : ControllerBase
     {
         private readonly VolunteerappContext _context;
@@ -218,12 +217,17 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpPut("[action]/{id}")]
+                [HttpPut("[action]/{id}")]
         [Authorize]
         public async Task<ActionResult<ProjectDto>> Update(int id, [FromBody] ProjectInputDto inputDto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var existingProject = await _context.Projects
             .Include(p => p.Skills)
             .Include(p => p.Appusers)
@@ -344,6 +348,81 @@ namespace WebAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, "Error during search");
+            }
+        }
+
+        [HttpPost("{projectId}/skills/{skillId}")]
+        [Authorize]
+        public async Task<ActionResult> AddSkillToProject(int projectId, int skillId)
+        {
+            try
+            {
+                var project = await _context.Projects
+                    .Include(p => p.Skills)
+                    .FirstOrDefaultAsync(p => p.Id == projectId);
+                
+                if (project == null)
+                {
+                    return NotFound($"Project with ID {projectId} not found");
+                }
+
+                var skill = await _context.Skills.FindAsync(skillId);
+                if (skill == null)
+                {
+                    return NotFound($"Skill with ID {skillId} not found");
+                }
+
+                if (project.Skills.Any(s => s.Id == skillId))
+                {
+                    return BadRequest($"Skill '{skill.Name}' is already associated with project '{project.Title}'");
+                }
+
+                project.Skills.Add(skill);
+                await _context.SaveChangesAsync();
+
+                await _logger.LogInformation($"Skill '{skill.Name}' added to project '{project.Title}'");
+                
+                return Ok($"Skill '{skill.Name}' successfully added to project '{project.Title}'");
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogError($"Error adding skill {skillId} to project {projectId}: {ex.Message}");
+                return StatusCode(500, "Error adding skill to project");
+            }
+        }
+
+        [HttpDelete("{projectId}/skills/{skillId}")]
+        [Authorize]
+        public async Task<ActionResult> RemoveSkillFromProject(int projectId, int skillId)
+        {
+            try
+            {
+                var project = await _context.Projects
+                    .Include(p => p.Skills)
+                    .FirstOrDefaultAsync(p => p.Id == projectId);
+                
+                if (project == null)
+                {
+                    return NotFound($"Project with ID {projectId} not found");
+                }
+
+                var skill = project.Skills.FirstOrDefault(s => s.Id == skillId);
+                if (skill == null)
+                {
+                    return NotFound($"Skill with ID {skillId} is not associated with project '{project.Title}'");
+                }
+
+                project.Skills.Remove(skill);
+                await _context.SaveChangesAsync();
+
+                await _logger.LogInformation($"Skill '{skill.Name}' removed from project '{project.Title}'");
+                
+                return Ok($"Skill '{skill.Name}' successfully removed from project '{project.Title}'");
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogError($"Error removing skill {skillId} from project {projectId}: {ex.Message}");
+                return StatusCode(500, "Error removing skill from project");
             }
         }
     }

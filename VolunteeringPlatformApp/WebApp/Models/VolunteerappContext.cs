@@ -27,7 +27,7 @@ public partial class VolunteerappContext : DbContext
     public virtual DbSet<Skill> Skills { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("server=10.0.0.42;Database=volunteerapp;User=sa;Password=AlgebruhGrupa2024;TrustServerCertificate=True;MultipleActiveResultSets=true");
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:AppConnStr");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
