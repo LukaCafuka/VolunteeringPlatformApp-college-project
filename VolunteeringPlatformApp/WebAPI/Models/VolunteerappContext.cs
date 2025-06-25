@@ -122,6 +122,7 @@ public partial class VolunteerappContext : DbContext
             entity.Property(e => e.Timestamp).IsRequired().HasDefaultValueSql("GETDATE()");
             entity.Property(e => e.Level).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Message).IsRequired();
+            entity.Ignore(e => e.Exception); // Ignore Exception property since it doesn't exist in DB
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -9,8 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<VolunteerappContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AppConnStr")));
+builder.Services.AddDbContext<VolunteerappContext>(options => {
+    options.UseSqlServer("name=ConnectionStrings:AppConnStr");
+});
 
 builder.Services.AddDistributedMemoryCache();
 

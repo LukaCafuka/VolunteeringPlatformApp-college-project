@@ -92,6 +92,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("[action]")]
+        [Authorize]
         public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectInputDto inputDto)
         {
             try
@@ -218,6 +219,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpPut("[action]/{id}")]
+        [Authorize]
         public async Task<ActionResult<ProjectDto>> Update(int id, [FromBody] ProjectInputDto inputDto)
         {
             try
@@ -265,6 +267,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpDelete("[action]/{id}")]
+        [Authorize]
         public async Task<ActionResult> Delete(int id)
         {
             try
